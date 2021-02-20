@@ -80,4 +80,8 @@ class DatabaseHelper {
     int result = Sqflite.firstIntValue(x);
     return result;
   }
+  Future <List<Note>> getNoteList() {
+    var noteMapList = await getNoteMapList();
+
+  }
 }
