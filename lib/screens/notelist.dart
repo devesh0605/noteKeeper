@@ -22,6 +22,7 @@ class _NoteListState extends State<NoteList> {
   Widget build(BuildContext context) {
     if (noteList == null) {
       noteList = List<Note>();
+     updateListView();
     }
     return Scaffold(
       appBar: AppBar(
@@ -33,7 +34,7 @@ class _NoteListState extends State<NoteList> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           print("Float");
-          navigateToDetail('Add Note');
+          navigateToDetail(Note('','',2),'Add Note');
         },
         tooltip: 'Tooltip text',
         child: Icon(Icons.add),
@@ -71,7 +72,7 @@ class _NoteListState extends State<NoteList> {
               ),
               onTap: () {
                 print("TAP TAP TAP");
-                navigateToDetail('Edit Note');
+                navigateToDetail(this.noteList[position],'Edit Note');
               },
             ),
           );
@@ -108,6 +109,7 @@ class _NoteListState extends State<NoteList> {
     int result = await databaseHelper.deleteNote(note.id);
     if (result != 0) {
       _showSnackBar(context, 'Note Deleted Successfully');
+      updateListView();
     }
   }
 
@@ -116,10 +118,23 @@ class _NoteListState extends State<NoteList> {
     Scaffold.of(context).showSnackBar(snackBar);
   }
 
-  void navigateToDetail(String title) {
+  void navigateToDetail(Note note, String title) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return NoteDetail(title);
+      return NoteDetail(note,title);
     }));
+  }
+
+  void updateListView(){
+    final Future<Database> dbFuture = databaseHelper.initializeDatabase();
+    dbFuture.then((database){
+      Future <List<Note>> noteListFuture = databaseHelper.getNoteList();
+      noteListFuture.then((noteList){
+        setState(() {
+          this.noteList = noteList;
+          this.count = noteList.length;
+        });
+      });
+    });
   }
 
 }

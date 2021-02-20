@@ -11,16 +11,19 @@ import 'package:note_keeper/utils/datebase_helper.dart';
 class NoteDetail extends StatefulWidget {
   final String appBarTitle;
 
-  NoteDetail(this.appBarTitle);
+  final Note note;
+
+  NoteDetail(this.note, this.appBarTitle);
 
   @override
-  _NoteDetailState createState() => _NoteDetailState(this.appBarTitle);
+  _NoteDetailState createState() => _NoteDetailState(this.note,this.appBarTitle);
 }
 
 class _NoteDetailState extends State<NoteDetail> {
   String appBarTitle;
+  Note note;
 
-  _NoteDetailState(this.appBarTitle);
+  _NoteDetailState(this.note,this.appBarTitle);
 
   static var priorities = ['High', 'Low'];
   TextEditingController title = TextEditingController();
