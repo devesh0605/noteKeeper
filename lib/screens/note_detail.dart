@@ -37,6 +37,7 @@ class _NoteDetailState extends State<NoteDetail> {
     TextStyle textStyle = Theme.of(context).textTheme.headline6;
     title.text = note.title;
     description.text = note.description;
+    var _formKey = GlobalKey<FormState>();
     return WillPopScope(
       // ignore: missing_return
       onWillPop: () {
@@ -53,100 +54,128 @@ class _NoteDetailState extends State<NoteDetail> {
             },
           ),
         ),
-        body: Padding(
-          padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
-          child: ListView(
-            children: <Widget>[
-              ListTile(
-                title: DropdownButton(
-                  items: priorities.map((String dropDownStringItem) {
-                    return DropdownMenuItem<String>(
-                      value: dropDownStringItem,
-                      child: Text(dropDownStringItem),
-                    );
-                  }).toList(),
-                  style: textStyle,
-                  value: getPriorityAsString(note.priority),
-                  onChanged: (valueByUser) {
-                    setState(() {
-                      updatePriorityAsInt(valueByUser);
-                    });
-                  },
+        body: Form(
+          key: _formKey,
+          child: Padding(
+            padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
+            child: ListView(
+              children: <Widget>[
+                ListTile(
+                  title: DropdownButton(
+                    items: priorities.map((String dropDownStringItem) {
+                      return DropdownMenuItem<String>(
+                        value: dropDownStringItem,
+                        child: Text(dropDownStringItem),
+                      );
+                    }).toList(),
+                    style: textStyle,
+                    value: getPriorityAsString(note.priority),
+                    onChanged: (valueByUser) {
+                      setState(() {
+                        updatePriorityAsInt(valueByUser);
+                      });
+                    },
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 15.0, bottom: 15.0),
-                child: TextField(
-                  controller: title,
-                  style: textStyle,
-                  onChanged: (value) {
-                    print('The value id $value');
-                    updateTitle();
-                  },
-                  decoration: InputDecoration(
-                      labelText: 'Title',
-                      labelStyle: textStyle,
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5.0))),
+                Padding(
+                  padding: const EdgeInsets.only(top: 15.0, bottom: 15.0),
+                  child: TextFormField(
+                    controller: title,
+                    style: textStyle,
+                    // onChanged: (value) {
+                    //   print('The value id $value');
+                    //   updateTitle();
+                    // },
+                    // ignore: missing_return
+                    validator: (String value) {
+                      if (value.isEmpty) {
+                        return 'Please enter title';
+                      }
+                      else{
+                        updateTitle();
+                      }
+                    },
+                    decoration: InputDecoration(
+                        labelText: 'Title',
+                        labelStyle: textStyle,
+                        errorStyle:
+                        TextStyle(color: Colors.red[900], fontSize: 15),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0))),
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 15.0, bottom: 15.0),
-                child: TextField(
-                  controller: description,
-                  style: textStyle,
-                  onChanged: (value) {
-                    print('The value id $description');
-                    updateDescription();
-                  },
-                  decoration: InputDecoration(
-                      labelText: 'Description',
-                      labelStyle: textStyle,
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5.0))),
+                Padding(
+                  padding: const EdgeInsets.only(top: 15.0, bottom: 15.0),
+                  child: TextFormField(
+                    controller: description,
+                    style: textStyle,
+                    // onChanged: (value) {
+                    //   print('The value id $description');
+                    //
+                    // },
+                    // ignore: missing_return
+                    validator: (String value) {
+                      if (value.isEmpty) {
+                        return 'Please enter Description';
+                      }
+                      else{
+                        updateDescription();
+                      }
+                    },
+                    decoration: InputDecoration(
+                        labelText: 'Description',
+                        labelStyle: textStyle,
+                        errorStyle:
+                        TextStyle(color: Colors.red[900], fontSize: 15),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0))),
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 15.0, bottom: 15.0),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                        child: RaisedButton(
-                      color: Theme.of(context).primaryColorDark,
-                      textColor: Theme.of(context).primaryColorLight,
-                      child: Text(
-                        'Save',
-                        textScaleFactor: 1.5,
+                Padding(
+                  padding: const EdgeInsets.only(top: 15.0, bottom: 15.0),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                          child: RaisedButton(
+                        color: Theme.of(context).primaryColorDark,
+                        textColor: Theme.of(context).primaryColorLight,
+                        child: Text(
+                          'Save',
+                          textScaleFactor: 1.5,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            print('Save clicked');
+                            if (_formKey.currentState.validate()){
+                              _save();
+                            }
+
+                          });
+                        },
+                      )),
+                      SizedBox(
+                        width: 5.0,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          print('Save clicked');
-                          _save();
-                        });
-                      },
-                    )),
-                    SizedBox(
-                      width: 5.0,
-                    ),
-                    Expanded(
-                        child: RaisedButton(
-                      color: Theme.of(context).primaryColorDark,
-                      textColor: Theme.of(context).primaryColorLight,
-                      child: Text(
-                        'Delete',
-                        textScaleFactor: 1.5,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          print('Delete clicked');
-                          _delete();
-                        });
-                      },
-                    )),
-                  ],
-                ),
-              )
-            ],
+                      Expanded(
+                          child: RaisedButton(
+                        color: Theme.of(context).primaryColorDark,
+                        textColor: Theme.of(context).primaryColorLight,
+                        child: Text(
+                          'Delete',
+                          textScaleFactor: 1.5,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            print('Delete clicked');
+                            _delete();
+                          });
+                        },
+                      )),
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),
