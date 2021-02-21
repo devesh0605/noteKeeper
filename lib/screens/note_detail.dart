@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:async';
 import 'dart:io';
@@ -26,12 +27,16 @@ class _NoteDetailState extends State<NoteDetail> {
   _NoteDetailState(this.note,this.appBarTitle);
 
   static var priorities = ['High', 'Low'];
+  DatabaseHelper helper = DatabaseHelper();
+
   TextEditingController title = TextEditingController();
   TextEditingController description = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     TextStyle textStyle = Theme.of(context).textTheme.headline6;
+    title.text = note.title;
+    description.text = note.description;
     return WillPopScope(
       // ignore: missing_return
       onWillPop: () {
@@ -61,10 +66,10 @@ class _NoteDetailState extends State<NoteDetail> {
                     );
                   }).toList(),
                   style: textStyle,
-                  value: 'Low',
+                  value: getPriorityAsString(note.priority),
                   onChanged: (valueByUser) {
                     setState(() {
-                      print(valueByUser);
+                      updatePriorityAsInt(valueByUser);
                     });
                   },
                 ),
@@ -76,6 +81,7 @@ class _NoteDetailState extends State<NoteDetail> {
                   style: textStyle,
                   onChanged: (value) {
                     print('The value id $value');
+                    updateTitle();
                   },
                   decoration: InputDecoration(
                       labelText: 'Title',
@@ -91,6 +97,7 @@ class _NoteDetailState extends State<NoteDetail> {
                   style: textStyle,
                   onChanged: (value) {
                     print('The value id $description');
+                    updateDescription();
                   },
                   decoration: InputDecoration(
                       labelText: 'Description',
@@ -114,6 +121,7 @@ class _NoteDetailState extends State<NoteDetail> {
                       onPressed: () {
                         setState(() {
                           print('Save clicked');
+                          _save();
                         });
                       },
                     )),
@@ -131,6 +139,7 @@ class _NoteDetailState extends State<NoteDetail> {
                       onPressed: () {
                         setState(() {
                           print('Delete clicked');
+                          _delete();
                         });
                       },
                     )),
@@ -144,6 +153,78 @@ class _NoteDetailState extends State<NoteDetail> {
     );
   }
   void moveToLastScreen(){
-    Navigator.pop(context);
+    Navigator.pop(context,true);
+  }
+  void updatePriorityAsInt(String value){
+    switch (value){
+      case 'High':note.priority=1;
+      break;
+      case 'Low':note.priority=2;
+      break;
+    }
+  }
+  String getPriorityAsString(int value){
+    String priority;
+    switch (value){
+      case 1:priority = priorities[0];//high
+      break;
+      case 2:priority = priorities[1];//low
+      break;
+    }
+    return priority;
+  }
+
+  void updateTitle(){
+    note.title = title.text;
+  }
+  void updateDescription(){
+    note.description = description.text;
+  }
+
+  void _save() async {
+    moveToLastScreen();
+    note.date = DateFormat.yMMMd().format(DateTime.now());
+    int result;
+    if (note.id != null) {  // Case 1: Update operation
+      result = await helper.updateNote(note);
+    } else { // Case 2: Insert Operation
+      result = await helper.insertNote(note);
+    }
+
+    if (result != 0) {  // Success
+      _showAlertDialog('Status', 'Note Saved Successfully');
+    } else {  // Failure
+      _showAlertDialog('Status', 'Problem Saving Note');
+    }
+  }
+  void _delete() async {
+
+    moveToLastScreen();
+
+    // Case 1: If user is trying to delete the NEW NOTE i.e. he has come to
+    // the detail page by pressing the FAB of NoteList page.
+    if (note.id == null) {
+      _showAlertDialog('Status', 'No Note was deleted');
+      return;
+    }
+
+    // Case 2: User is trying to delete the old note that already has a valid ID.
+    int result = await helper.deleteNote(note.id);
+    if (result != 0) {
+      _showAlertDialog('Status', 'Note Deleted Successfully');
+    } else {
+      _showAlertDialog('Status', 'Error Occurred while Deleting Note');
+    }
+  }
+  void _showAlertDialog(String title, String message) {
+
+    AlertDialog alertDialog = AlertDialog(
+      title: Text(title),
+      content: Text(message),
+    );
+    showDialog(
+        context: context,
+        builder: (_) => alertDialog
+    );
   }
 }
